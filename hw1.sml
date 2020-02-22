@@ -56,11 +56,9 @@ in
 end
 
 fun number_before_reaching_sum(sum : int, lon : int list) = 
-    if null lon 
+    if sum <= hd lon
     then 0
-    else if sum - hd lon <= 0 
-         then 0 + number_before_reaching_sum(sum - hd lon, tl lon)
-         else 1 + number_before_reaching_sum(sum - hd lon, tl lon)
+    else 1 + number_before_reaching_sum(sum - hd lon, tl lon)
 
 fun what_month(day : int) = 
 let
@@ -70,9 +68,9 @@ in
 end
 
 fun month_range(day1 : int, day2 : int) = 
-    if day1 = day2 
-    then [what_month day1]
-    else [what_month day1] @ month_range(day1+1, day2)
+    if day1 > day2
+    then []
+    else what_month day1 :: month_range(day1 + 1, day2)
 
 fun oldest(lod : (int*int*int) list) = 
     if null lod
@@ -83,33 +81,31 @@ fun oldest(lod : (int*int*int) list) =
               then oldest(hd lod :: tl (tl lod))
               else oldest(tl lod)
 
-fun date_in_list(date : int*int*int, lod : (int*int*int) list) =
-    if null lod
+fun number_in_list(num : int, lom : int list) = 
+    if null lom
     then false
-    else if #1 date = #1 (hd lod)
-            andalso #2 date = #2 (hd lod) 
-            andalso #3 date = #3 (hd lod)
+    else if num = hd lom
          then true
-         else date_in_list(date, tl lod)
+         else number_in_list(num, tl lom)
 
-fun remove_duplicates(lod : (int*int*int) list) = 
+fun remove_duplicates(lom : int list) = 
     let
-      fun helper(lod : (int*int*int) list, mem : (int*int*int) list) = 
-        if null lod
+      fun helper(lom : int list, mem : int list) = 
+        if null lom
         then mem
-        else if date_in_list(hd lod, mem)
-             then helper(tl lod, mem)
-             else helper(tl lod, mem @ [hd lod])
+        else if number_in_list(hd lom, mem)
+             then helper(tl lom, mem)
+             else helper(tl lom, mem @ [hd lom])
     in
-      helper(lod, [])
+      helper(lom, [])
     end
 
 
 fun number_in_months_challenge(lod : (int*int*int) list, lom : int list) = 
-    number_in_months((remove_duplicates lod), lom)
+    number_in_months(lod, remove_duplicates lom)
 
 fun dates_in_months_challenge(lod : (int*int*int) list, lom : int list) =
-    dates_in_months((remove_duplicates lod), lom)
+    dates_in_months(lod, remove_duplicates lom)
 
 fun reasonable_date(date : int*int*int) = 
     let
@@ -129,7 +125,9 @@ fun reasonable_date(date : int*int*int) =
 
       val check_year  = #1 date > 0
       val check_month = #2 date >= 1 andalso #2 date <=12
-      val check_day   = #3 date >= 1 andalso #3 date <= get_month_days(#2 date, months_days)
+      val check_day   = if check_month 
+                        then #3 date >= 1 andalso #3 date <= get_month_days(#2 date, months_days)
+                        else false
     in
       check_year andalso check_month andalso check_day
     end
